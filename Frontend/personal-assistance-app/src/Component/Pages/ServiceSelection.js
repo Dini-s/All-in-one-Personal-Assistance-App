@@ -28,6 +28,7 @@ const ServiceSelection = () => {
   const [bookingSuccess, setBookingSuccess] = useState(null);
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
   const [formData, setFormData] = useState({
     agreementDuration: "1 month",
     monthlyPayment: 5000,
@@ -59,11 +60,49 @@ const ServiceSelection = () => {
     }));
   };
 
-  const handleBookNow = async () => {
-    if (!selectedProvider) return;
+  // Add this before handleBookNow
+const validateForm = () => {
+  const errors = {};
+  
+  // Validate monthly payment
+  if (!formData.monthlyPayment) {
+    errors.monthlyPayment = "Monthly payment is required";
+  } else if (formData.monthlyPayment < 1000) {
+    errors.monthlyPayment = "Monthly payment must be at least 1000";
+  }
+  
+  // Validate booking date
+  if (!formData.bookingDate) {
+    errors.bookingDate = "Booking date is required";
+  } else {
+    const selectedDate = new Date(formData.bookingDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < today) {
+      errors.bookingDate = "Booking date cannot be in the past";
+    }
+  }
+  
+  // Validate booking time
+  if (!formData.bookingTime) {
+    errors.bookingTime = "Booking time is required";
+  }
+  
+  // Set validation errors and return valid status
+  setValidationErrors(errors);
+  return Object.keys(errors).length === 0;
+};
+const handleBookNow = async () => {
+  if (!selectedProvider) return;
+  
+  // Validate form before submission
+  if (!validateForm()) {
+    return; // Stop submission if validation fails
+  }
 
-    setBookingError(null);
-    setBookingSuccess(null);
+  setBookingError(null);
+  setBookingSuccess(null);
 
     try {
       const bookingData = {
@@ -90,6 +129,7 @@ const ServiceSelection = () => {
       console.error(err);
     }
   };
+  
 
   return (
     <div className="container mx-auto p-6">
@@ -172,45 +212,65 @@ const ServiceSelection = () => {
                 <option value="1 year">1 Year</option>
               </select>
             </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 font-semibold mb-2">
-                Monthly Payment (Rs.)
-              </label>
-              <input
-                type="number"
-                name="monthlyPayment"
-                value={formData.monthlyPayment}
-                onChange={handleFormChange}
-                className="w-full border rounded-md p-2"
-                min="1000"
-                step="100"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 font-semibold mb-2">
-                Booking Date
-              </label>
-              <input
-                type="date"
-                name="bookingDate"
-                value={formData.bookingDate}
-                onChange={handleFormChange}
-                className="w-full border rounded-md p-2"
-                min={new Date().toISOString().split("T")[0]} // Prevent past dates
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 font-semibold mb-2">
-                Booking Time
-              </label>
-              <input
-                type="time"
-                name="bookingTime"
-                value={formData.bookingTime}
-                onChange={handleFormChange}
-                className="w-full border rounded-md p-2"
-              />
-            </div>
+           
+<div className="mb-4">
+  <label className="block text-gray-700 font-semibold mb-2">
+    Monthly Payment (Rs.)
+  </label>
+  <input
+    type="number"
+    name="monthlyPayment"
+    value={formData.monthlyPayment}
+    onChange={handleFormChange}
+    className={`w-full border rounded-md p-2 ${
+      validationErrors.monthlyPayment ? "border-red-500" : ""
+    }`}
+    min="1000"
+    step="100"
+  />
+  {validationErrors.monthlyPayment && (
+    <p className="text-red-500 text-sm mt-1">{validationErrors.monthlyPayment}</p>
+  )}
+</div>
+
+
+<div className="mb-4">
+  <label className="block text-gray-700 font-semibold mb-2">
+    Booking Date
+  </label>
+  <input
+    type="date"
+    name="bookingDate"
+    value={formData.bookingDate}
+    onChange={handleFormChange}
+    className={`w-full border rounded-md p-2 ${
+      validationErrors.bookingDate ? "border-red-500" : ""
+    }`}
+    min={new Date().toISOString().split("T")[0]}
+  />
+  {validationErrors.bookingDate && (
+    <p className="text-red-500 text-sm mt-1">{validationErrors.bookingDate}</p>
+  )}
+</div>
+
+
+<div className="mb-4">
+  <label className="block text-gray-700 font-semibold mb-2">
+    Booking Time
+  </label>
+  <input
+    type="time"
+    name="bookingTime"
+    value={formData.bookingTime}
+    onChange={handleFormChange}
+    className={`w-full border rounded-md p-2 ${
+      validationErrors.bookingTime ? "border-red-500" : ""
+    }`}
+  />
+  {validationErrors.bookingTime && (
+    <p className="text-red-500 text-sm mt-1">{validationErrors.bookingTime}</p>
+  )}
+</div>
             <div className="mb-4">
               <h3 className="text-lg font-semibold mb-2">Booking For</h3>
               <p className="text-gray-600">

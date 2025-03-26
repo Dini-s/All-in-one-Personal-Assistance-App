@@ -15,10 +15,14 @@ const bookingSchema = new mongoose.Schema({
   agreementDuration: { type: String, required: true },
   bookingService: { type: String, required: true },
   monthlyPayment: { type: Number, required: true },
-  status: { type: String, default: "PENDING" },
-  bookingDate: { type: String, required: true }, // Store date as string (e.g., "2025-03-27")
-  bookingTime: { type: String, required: true }, // Store time as string (e.g., "14:30")
-  createdAt: { type: Date, default: Date.now }, // When the booking was created
+  status: {
+    type: String,
+    enum: ["PENDING", "CONFIRMED", "REJECTED", "CANCELLED"],
+    default: "PENDING",
+  },
+  bookingDate: { type: String, required: true },
+  bookingTime: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
   payments: [{ type: String }],
 });
 
@@ -160,6 +164,31 @@ const retrieveBookings = asyncHandler(async (req, res) => {
   }
 });
 
+// Retrieve all bookings (for admin)
+const getAllBookings = asyncHandler(async (req, res) => {
+  try {
+    console.log("=== GET ALL BOOKINGS STARTED ===");
+    console.log("Querying all bookings...");
+
+    const bookings = await Booking.find()
+      .populate("providerID")
+      .sort({ createdAt: -1 });
+    console.log("Found bookings:", bookings.length);
+
+    res.status(200).json({
+      message: "All bookings retrieved successfully",
+      bookings,
+    });
+    console.log("=== GET ALL BOOKINGS COMPLETED ===");
+  } catch (error) {
+    console.error("Error retrieving all bookings:", error);
+    res.status(500).json({
+      message: "Error retrieving all bookings",
+      error: error.message,
+    });
+  }
+});
+
 // Update a booking
 const updateBooking = asyncHandler(async (req, res) => {
   try {
@@ -168,21 +197,26 @@ const updateBooking = asyncHandler(async (req, res) => {
     console.log("Booking ID:", bookingID);
     console.log("Update data:", req.body);
 
-    const { agreementDuration, bookingService, monthlyPayment, bookingDate, bookingTime, status } =
-      req.body;
+    // Validate bookingID
+    if (!mongoose.Types.ObjectId.isValid(bookingID)) {
+      console.log("Invalid booking ID:", bookingID);
+      return res.status(400).json({ message: "Invalid booking ID" });
+    }
 
-    console.log("Updating booking...");
+    // Create an update object with only the fields that are provided
+    const updateData = {};
+    if (req.body.agreementDuration) updateData.agreementDuration = req.body.agreementDuration;
+    if (req.body.bookingService) updateData.bookingService = req.body.bookingService;
+    if (req.body.monthlyPayment) updateData.monthlyPayment = parseFloat(req.body.monthlyPayment);
+    if (req.body.bookingDate) updateData.bookingDate = req.body.bookingDate;
+    if (req.body.bookingTime) updateData.bookingTime = req.body.bookingTime;
+    if (req.body.status) updateData.status = req.body.status;
+
+    console.log("Updating booking with data:", updateData);
     const updatedBooking = await Booking.findByIdAndUpdate(
       bookingID,
-      {
-        agreementDuration,
-        bookingService,
-        monthlyPayment: parseFloat(monthlyPayment),
-        bookingDate,
-        bookingTime,
-        status,
-      },
-      { new: true }
+      updateData,
+      { new: true, runValidators: true } // runValidators ensures schema validation
     );
 
     if (!updatedBooking) {
@@ -238,6 +272,7 @@ export {
   filterServiceProviders,
   createBooking,
   retrieveBookings,
+  getAllBookings, // Export the new function
   updateBooking,
   deleteBooking,
 };

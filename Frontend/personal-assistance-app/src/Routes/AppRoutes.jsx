@@ -13,7 +13,7 @@ import AdminLayout from "../Component/UI/AdminDashboard/AdminLayout";
 import AdminDashboard from "../Component/Pages/Admindashboard/AdminDashboard";
 import LoginPage from "../Component/UI/LoginPage";
 import Overview from "../Component/Pages/Admindashboard/Overview";
-
+import AdminBookings from "../Component/Pages/Admindashboard/AdminBookings";
 import ServiceSelection from "../Component/Pages/ServiceSelection";
 
 import MyBookings from "../Component/Pages/MyBookings";
@@ -33,6 +33,7 @@ export default function AppRoutes({
       {/* Public routes */}
       <Route path="/" element={<Layout />}>
         <Route index element={<HomePage />} />
+        <Route path="/bookings" element={<AdminBookings />} />
         <Route
           path="/login"
           element={<LoginPage handleLogin={handleLogin} />}
@@ -48,26 +49,25 @@ export default function AppRoutes({
           </Route>
           <Route path="/serviceselection" element={<ServiceSelection />} />
           <Route path="/my-bookings" element={<MyBookings />} />
+          
         </Route>
       </Route>
 
 
       {/* Admin Route */}
-      <Route
+     
+<Route
         path="/admin"
-        element={
-          <AdminRoute isAuthenticated={isAuthenticated} isAdmin={isAdmin} />
-        }
+        element={<AdminRoute isAuthenticated={isAuthenticated} isAdmin={isAdmin} />}
       >
         <Route element={<AdminLayout />}>
           <Route index element={<Overview />} />
-          {/*<Route path="overview" element={<Overview />} />*/}
+          <Route path="bookings" element={<AdminBookings />} /> {/* New route */}
         </Route>
       </Route>
 
       {/* Catch-all Route */}
       <Route path="*" element={<Navigate to="/" />} />
-
     </Routes>
   );
 }

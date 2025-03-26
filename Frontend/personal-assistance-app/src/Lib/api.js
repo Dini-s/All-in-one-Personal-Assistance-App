@@ -32,6 +32,9 @@ export const createBooking = (bookingData) =>
 export const retrieveBookings = (customerID) =>
   api.get(`/home/booking/customer/${customerID}`);
 
+// Retrieve all bookings (admin)
+export const getAllBookings = () => api.get("/home/booking/all");
+
 // Update a booking
 export const updateBooking = (bookingID, updatedData) =>
   api.put(`/home/booking/${bookingID}`, updatedData);

@@ -6,6 +6,7 @@ import {
   retrieveBookings,
   updateBooking,
   deleteBooking,
+  getAllBookings,
 } from "../models/booking.js";
 
 const router = express.Router();
@@ -39,5 +40,8 @@ router.delete("/:bookingID", (req, res, next) => {
   console.log("Delete booking route accessed");
   next();
 }, deleteBooking);
+
+// Retrieve all bookings (admin)
+router.get("/all", getAllBookings);
 
 export { router as bookingRouter };

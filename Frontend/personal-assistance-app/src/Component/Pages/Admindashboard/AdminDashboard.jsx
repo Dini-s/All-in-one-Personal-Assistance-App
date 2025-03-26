@@ -1,3 +1,4 @@
+// Frontend/personal-assistance-app/src/Component/Pages/Admindashboard/AdminDashboard.js
 import React from "react";
 import { Link } from "react-router-dom";
 
@@ -15,6 +16,14 @@ export default function AdminDashboard() {
                 className="text-blue-500 hover:underline"
               >
                 View Financial Reports
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/admin/bookings"
+                className="text-blue-500 hover:underline"
+              >
+                Manage Bookings
               </Link>
             </li>
             {/* Add more quick actions */}
