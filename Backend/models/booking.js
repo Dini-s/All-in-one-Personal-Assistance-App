@@ -1,81 +1,57 @@
 // Backend/config/models/booking.js
 import asyncHandler from "express-async-handler";
-import { prisma } from "../config/prismaConfig.js"
+import ServiceProvider from "./ServiceProvider.js";
+import mongoose from "mongoose";
 
-// Filter service providers based on query parameters
+// Define a simple Booking schema for Mongoose
+const bookingSchema = new mongoose.Schema({
+  customerID: { type: String, required: true },
+  customerDetails: {
+    name: { type: String, required: true },
+    email: { type: String, required: true },
+    phone: { type: String, required: true },
+  },
+  providerID: { type: String, required: true },
+  agreementDuration: { type: String, required: true },
+  bookingService: { type: String, required: true },
+  monthlyPayment: { type: Number, required: true },
+  status: { type: String, default: "PENDING" },
+  bookingDate: { type: String, required: true }, // Store date as string (e.g., "2025-03-27")
+  bookingTime: { type: String, required: true }, // Store time as string (e.g., "14:30")
+  createdAt: { type: Date, default: Date.now }, // When the booking was created
+  payments: [{ type: String }],
+});
+
+const Booking = mongoose.model("bookings", bookingSchema);
+
+// Filter service providers based on serviceType
 const filterServiceProviders = asyncHandler(async (req, res) => {
   try {
-    const {
-      minHourlyRate,
-      maxHourlyRate,
-      servicesOffered,
-      languagesSpoken,
-      categoryType,
-    } = req.query;
+    console.log("=== FILTER SERVICE PROVIDERS STARTED ===");
+    console.log("Request query:", req.query);
 
-    // Build the filter query
+    const { serviceType } = req.query;
+    console.log("Service type received:", serviceType);
+
     const filters = {};
 
-    // Filter by category type (e.g., Pet Care, Tutoring)
-    if (categoryType) {
-      filters.service = {
-        category: {
-          Type: categoryType,
-        },
-      };
+    if (serviceType) {
+      filters.serviceType = serviceType;
+      console.log("Filter criteria:", filters);
+    } else {
+      console.log("Service type missing in request");
+      return res.status(400).json({ message: "Service type is required" });
     }
 
-    // Filter by services offered (e.g., WALKING, DAY CARE for Pet Care)
-    if (servicesOffered) {
-      const servicesArray = servicesOffered.split(",");
-      filters.service = {
-        ...filters.service,
-        ServiceName: {
-          in: servicesArray,
-        },
-      };
-    }
-
-    // Filter by languages spoken (e.g., SINHALA, ENGLISH, TAMIL)
-    if (languagesSpoken) {
-      const languagesArray = languagesSpoken.split(",");
-      filters.languagesSpoken = {
-        some: {
-          language: {
-            in: languagesArray,
-          },
-        },
-      };
-    }
-
-    // Filter by hourly rate
-    if (minHourlyRate || maxHourlyRate) {
-      filters.hourlyRate = {};
-      if (minHourlyRate) {
-        filters.hourlyRate.gte = parseFloat(minHourlyRate);
-      }
-      if (maxHourlyRate) {
-        filters.hourlyRate.lte = parseFloat(maxHourlyRate);
-      }
-    }
-
-    // Query the database
-    const serviceProviders = await prisma.serviceProvider.findMany({
-      where: filters,
-      include: {
-        service: {
-          include: {
-            category: true,
-          },
-        },
-        languagesSpoken: true,
-      },
-    });
+    console.log("Querying database with filters...");
+    const serviceProviders = await ServiceProvider.find(filters);
+    console.log("Found service providers:", serviceProviders.length);
 
     res.status(200).json({
       message: "Service providers filtered successfully",
       serviceProviders,
     });
+    console.log("=== FILTER SERVICE PROVIDERS COMPLETED ===");
   } catch (error) {
     console.error("Error filtering service providers:", error);
     res.status(500).json({
@@ -88,41 +64,66 @@ const filterServiceProviders = asyncHandler(async (req, res) => {
 // Create a new booking
 const createBooking = asyncHandler(async (req, res) => {
   try {
+    console.log("=== CREATE BOOKING STARTED ===");
+    console.log("Request body:", req.body);
+
     const {
       customerID,
+      customerDetails,
       providerID,
       agreementDuration,
       bookingService,
       monthlyPayment,
+      bookingDate,
+      bookingTime,
     } = req.body;
 
-    if (!customerID || !providerID || !bookingService) {
+    console.log("Validating required fields...");
+    if (
+      !customerID ||
+      !customerDetails ||
+      !providerID ||
+      !bookingService ||
+      !bookingDate ||
+      !bookingTime
+    ) {
+      console.log(
+        "Missing required fields - customerID:",
+        customerID,
+        "customerDetails:",
+        customerDetails,
+        "providerID:",
+        providerID,
+        "bookingService:",
+        bookingService,
+        "bookingDate:",
+        bookingDate,
+        "bookingTime:",
+        bookingTime
+      );
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const booking = await prisma.booking.create({
-      data: {
-        AgreementDuration: agreementDuration,
-        Booking_Service: bookingService,
-        MonthlyPayment: parseFloat(monthlyPayment),
-        Status: "PENDING",
-        customer: {
-          connect: { id: customerID },
-        },
-        serviceProvider: {
-          connect: { ProviderID: providerID },
-        },
-      },
-      include: {
-        customer: true,
-        serviceProvider: true,
-      },
+    console.log("Creating new booking...");
+    const booking = await Booking.create({
+      customerID,
+      customerDetails,
+      providerID,
+      agreementDuration,
+      bookingService,
+      monthlyPayment: parseFloat(monthlyPayment),
+      bookingDate,
+      bookingTime,
+      status: "PENDING",
+      payments: [],
     });
+    console.log("Booking created successfully:", booking);
 
     res.status(201).json({
       message: "Booking created successfully",
       booking,
     });
+    console.log("=== CREATE BOOKING COMPLETED ===");
   } catch (error) {
     console.error("Error creating booking:", error);
     res.status(500).json({
@@ -135,34 +136,21 @@ const createBooking = asyncHandler(async (req, res) => {
 // Retrieve all bookings for a customer
 const retrieveBookings = asyncHandler(async (req, res) => {
   try {
+    console.log("=== RETRIEVE BOOKINGS STARTED ===");
     const { customerID } = req.params;
+    console.log("Customer ID:", customerID);
 
-    const bookings = await prisma.booking.findMany({
-      where: {
-        CustomerID: customerID,
-      },
-      include: {
-        customer: true,
-        serviceProvider: {
-          include: {
-            service: {
-              include: {
-                category: true,
-              },
-            },
-          },
-        },
-        payment: true,
-      },
-      orderBy: {
-        BookingDate: "desc",
-      },
-    });
+    console.log("Querying bookings...");
+    const bookings = await Booking.find({ customerID })
+      .populate("providerID")
+      .sort({ createdAt: -1 });
+    console.log("Found bookings:", bookings.length);
 
     res.status(200).json({
       message: "Bookings retrieved successfully",
       bookings,
     });
+    console.log("=== RETRIEVE BOOKINGS COMPLETED ===");
   } catch (error) {
     console.error("Error retrieving bookings:", error);
     res.status(500).json({
@@ -175,30 +163,39 @@ const retrieveBookings = asyncHandler(async (req, res) => {
 // Update a booking
 const updateBooking = asyncHandler(async (req, res) => {
   try {
+    console.log("=== UPDATE BOOKING STARTED ===");
     const { bookingID } = req.params;
-    const { agreementDuration, bookingService, monthlyPayment, status } =
+    console.log("Booking ID:", bookingID);
+    console.log("Update data:", req.body);
+
+    const { agreementDuration, bookingService, monthlyPayment, bookingDate, bookingTime, status } =
       req.body;
 
-    const updatedBooking = await prisma.booking.update({
-      where: {
-        BookingID: bookingID,
+    console.log("Updating booking...");
+    const updatedBooking = await Booking.findByIdAndUpdate(
+      bookingID,
+      {
+        agreementDuration,
+        bookingService,
+        monthlyPayment: parseFloat(monthlyPayment),
+        bookingDate,
+        bookingTime,
+        status,
       },
-      data: {
-        AgreementDuration: agreementDuration,
-        Booking_Service: bookingService,
-        MonthlyPayment: parseFloat(monthlyPayment),
-        Status: status,
-      },
-      include: {
-        customer: true,
-        serviceProvider: true,
-      },
-    });
+      { new: true }
+    );
 
+    if (!updatedBooking) {
+      console.log("Booking not found with ID:", bookingID);
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    console.log("Booking updated successfully:", updatedBooking);
     res.status(200).json({
       message: "Booking updated successfully",
       updatedBooking,
     });
+    console.log("=== UPDATE BOOKING COMPLETED ===");
   } catch (error) {
     console.error("Error updating booking:", error);
     res.status(500).json({
@@ -211,17 +208,23 @@ const updateBooking = asyncHandler(async (req, res) => {
 // Delete a booking
 const deleteBooking = asyncHandler(async (req, res) => {
   try {
+    console.log("=== DELETE BOOKING STARTED ===");
     const { bookingID } = req.params;
+    console.log("Booking ID to delete:", bookingID);
 
-    await prisma.booking.delete({
-      where: {
-        BookingID: bookingID,
-      },
-    });
+    console.log("Deleting booking...");
+    const deletedBooking = await Booking.findByIdAndDelete(bookingID);
 
+    if (!deletedBooking) {
+      console.log("Booking not found with ID:", bookingID);
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    console.log("Booking deleted successfully");
     res.status(200).json({
       message: "Booking deleted successfully",
     });
+    console.log("=== DELETE BOOKING COMPLETED ===");
   } catch (error) {
     console.error("Error deleting booking:", error);
     res.status(500).json({

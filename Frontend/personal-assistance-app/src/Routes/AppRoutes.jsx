@@ -16,6 +16,8 @@ import Overview from "../Component/Pages/Admindashboard/Overview";
 
 import ServiceSelection from "../Component/Pages/ServiceSelection";
 
+import MyBookings from "../Component/Pages/MyBookings";
+
 
 // You'll need to create this
 
@@ -26,6 +28,7 @@ export default function AppRoutes({
   handleLogin,
 }) {
   return (
+    
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<Layout />}>
@@ -42,18 +45,10 @@ export default function AppRoutes({
             <Route path="PaymentOption" element={<PaymentMethod />} />
             <Route path="PaymentHistory" element={<PaymentHistory />} />
             <Route path="RefundHistory" element={<RefundHistory />} />
-            
-          </Route>
-          <Route path="/serviceselection" element={<ServiceSelection />}>
-            <Route path="MakePayment" element={<BackgroundGradient />} />
-            <Route path="PaymentOption" element={<PaymentMethod />} />
-            <Route path="PaymentHistory" element={<PaymentHistory />} />
-            <Route path="RefundHistory" element={<RefundHistory />} />
-            
           </Route>
           <Route path="/serviceselection" element={<ServiceSelection />} />
+          <Route path="/my-bookings" element={<MyBookings />} />
         </Route>
-        
       </Route>
 
 

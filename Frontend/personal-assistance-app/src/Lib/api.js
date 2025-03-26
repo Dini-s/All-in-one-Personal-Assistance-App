@@ -20,10 +20,24 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Filter service providers
 export const filterServiceProviders = (filters) =>
   api.get("/home/booking/service-providers/filter", { params: filters });
 
+// Create a new booking
 export const createBooking = (bookingData) =>
   api.post("/home/booking/create", bookingData);
+
+// Retrieve all bookings for a customer
+export const retrieveBookings = (customerID) =>
+  api.get(`/home/booking/customer/${customerID}`);
+
+// Update a booking
+export const updateBooking = (bookingID, updatedData) =>
+  api.put(`/home/booking/${bookingID}`, updatedData);
+
+// Delete a booking
+export const deleteBooking = (bookingID) =>
+  api.delete(`/home/booking/${bookingID}`);
 
 export default api;
