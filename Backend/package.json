@@ -5,7 +5,9 @@
   "description": "Personal Assistance App",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "prisma:generate": "prisma generate",
+    "postinstall": "prisma generate"
   },
   "repository": "y",
   "author": "Dini Gamage",
