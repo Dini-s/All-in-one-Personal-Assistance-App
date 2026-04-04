@@ -21,13 +21,6 @@ import ServiceProviderDashboard from "./Component/Pages/ServiceProvider/ServiceP
 import MyBookings from "./Component/Pages/MyBookings";
 import Chatbot from './Component/Chatbot/Chatbot';
 import MyReviews from "./Component/Pages/MyReviews";
-import PaymentDashboard from "./Component/Pages/PaymentDashboard";
-import { BackgroundGradient } from "./Component/UI/background-gradient";
-import PaymentMethod from "./Component/UI/PaymentMethod";
-import PaymentHistory from "./Component/UI/PaymentHistory";
-import RefundHistory from "./Component/UI/RefundHistory";
-import PaymentSuccess from "./Component/UI/PaymenSuccess";
-import PaymentCancel from "./Component/UI/PaymentCancel";
 
 
 import ServiceSelection1 from "./Component/Pages/ServiceProvider/ServiceSelection";
@@ -117,6 +110,8 @@ function App() {
         <Route path="/housecselection" element={<HouseCleaningService />} />
       
 
+        {/* <Route path="/payment" element={<PaymentDashboard />} /> */}
+        
         <Route
           path="/kitchensselection"
           element={<KitchenServiceSelection />}
@@ -136,14 +131,6 @@ function App() {
           <Route path="/my-reviews" element={<MyReviews />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/bookmarks" element={<BookmarkPage />} />
-          <Route path="/payment" element={<PaymentDashboard />}>
-            <Route path="MakePayment" element={<BackgroundGradient />} />
-            <Route path="PaymentOption" element={<PaymentMethod />} />
-            <Route path="PaymentHistory" element={<PaymentHistory />} />
-            <Route path="RefundHistory" element={<RefundHistory />} />
-            <Route path="paymentSuccess" element={<PaymentSuccess />} />
-            <Route path="paymentCancel" element={<PaymentCancel />} />
-          </Route>
         </Route>
 
         {/* admin */}
