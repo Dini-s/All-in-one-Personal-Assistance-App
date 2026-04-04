@@ -7,6 +7,11 @@ import AlertTitle from "@mui/material/AlertTitle";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:8070";
+
+const isCardMethod = (type) => type === "visa" || type === "mastercard";
+
 export default function PaymentForm({
   selectedType,
   saveDetails,
@@ -92,7 +97,7 @@ export default function PaymentForm({
 
     try {
       const response = await axios.post(
-        "http://localhost:8070/home/payment/makePayment",
+        `${API_BASE_URL}/home/payment/makePayment`,
         {
           Amount: amount,
           Currency: "LKR",
@@ -103,9 +108,9 @@ export default function PaymentForm({
         },
       );
 
-      if (saveCard) {
+      if (saveCard && isCardMethod(selectedType)) {
         await axios.post(
-          "http://localhost:8070/home/payment/savedPayment/Option",
+          `${API_BASE_URL}/home/payment/savedPayment/Option`,
           {
             paymentMethod: selectedType,
             cardNumber: cardCredentials.cardNumber,
@@ -121,10 +126,11 @@ export default function PaymentForm({
         }, 2000);
       }
       const data = response.data;
+      const checkoutUrl = data?.session?.url || data?.checkout_url;
 
-      if (data.session && data.session.url) {
+      if (checkoutUrl) {
         console.log("url accessed");
-        window.location.href = data.session.url;
+        window.location.href = checkoutUrl;
       }
     } catch (error) {
       setAlert({
@@ -161,7 +167,7 @@ export default function PaymentForm({
         <h2 className="text-lg font-semibold mb-4 text-violet-950">
           Payment Details
         </h2>
-        {selectedType === "visa" || selectedType === "mastercard" ? (
+        {isCardMethod(selectedType) ? (
           <>
             <div className="mb-6">
               <VisaCard
@@ -310,18 +316,20 @@ export default function PaymentForm({
           </div>
         ) : null}
 
-        <div className="mt-4">
-          <input
-            type="checkbox"
-            id="saveCard"
-            checked={saveCard}
-            onChange={(e) => setSaveCard(e.target.checked)}
-            className="mr-2"
-          />
-          <label htmlFor="saveCard" className="text-violet-950">
-            Save card details for future payments
-          </label>
-        </div>
+        {isCardMethod(selectedType) && (
+          <div className="mt-4">
+            <input
+              type="checkbox"
+              id="saveCard"
+              checked={saveCard}
+              onChange={(e) => setSaveCard(e.target.checked)}
+              className="mr-2"
+            />
+            <label htmlFor="saveCard" className="text-violet-950">
+              Save card details for future payments
+            </label>
+          </div>
+        )}
 
         <button
           type="submit"

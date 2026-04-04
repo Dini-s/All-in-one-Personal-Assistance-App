@@ -1,19 +1,48 @@
 import asyncHandler from "express-async-handler"
 import { prisma } from "../config/prismaConfig.js"
 import { ObjectId } from "mongodb";
-import Stripe from "stripe";
 import { salaryMail } from "../services/salaryMail.js";
 
+const PAYHERE_CHECKOUT_URL = "https://sandbox.payhere.lk/pay/checkout";
+
+const buildPayHereCheckoutUrl = ({ orderId, amount, items }) => {
+    const paymentData = {
+        merchant_id: process.env.PAYHERE_MERCHANT_ID,
+        return_url: process.env.PAYHERE_RETURN_URL,
+        cancel_url: process.env.PAYHERE_CANCEL_URL,
+        notify_url: process.env.PAYHERE_NOTIFY_URL,
+        order_id: orderId,
+        items,
+        currency: "LKR",
+        amount: amount.toFixed(2),
+    };
+
+    return `${PAYHERE_CHECKOUT_URL}?${new URLSearchParams(paymentData).toString()}`;
+};
 
 //create paymente
 const createPayment = asyncHandler(async (req, res) => {
     console.log("Create Payment");
-    let { Amount, Currency, PaymentMethod, order_id, BookingId, Item } = req.body;
+    let { Amount, PaymentMethod, BookingId, Item } = req.body;
 
     if (!Amount || !PaymentMethod || !BookingId) {
         res.status(400);
         throw new Error("Missing Required fields");
     }
+
+    if (String(PaymentMethod).toLowerCase() !== "payhere") {
+        return res.status(400).json({ error: "Only PayHere is supported for MVP" });
+    }
+
+    const numericAmount = Number(Amount);
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+        return res.status(400).json({ error: "Invalid payment amount" });
+    }
+
+    if (!process.env.PAYHERE_MERCHANT_ID || !process.env.PAYHERE_RETURN_URL || !process.env.PAYHERE_CANCEL_URL || !process.env.PAYHERE_NOTIFY_URL) {
+        return res.status(500).json({ error: "PayHere is not configured" });
+    }
+
     try {
         //find reletated paymentMethod detials
         let paymentMethod = await prisma.paymentMethod.findFirst({
@@ -38,36 +67,19 @@ const createPayment = asyncHandler(async (req, res) => {
             throw new Error("Invalid Booking ID");
         }
 
-        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            mode: 'payment',
-            success_url: `${process.env.CLIENT_SITE_URL}payment/paymentSuccess`,
-            cancel_url: `${process.env.CLIENT_SITE_URL}payment/paymentCancel`,
-            customer_email: 'sdinithi7@gmail.com',
-            client_reference_id: BookingId,
-            line_items: [
-                {
-                    price_data: {
-                        currency: 'usd',
-                        unit_amount: Amount * 100,
-                        product_data: {
-                            name: 'Booking Payment'
-                        },
-
-                    },
-                    quantity: 1,
-                },
-            ],
-
-        })
+        const itemName = Item || "Monthly Service Payment";
+        const checkoutUrl = buildPayHereCheckoutUrl({
+            orderId: BookingId,
+            amount: numericAmount,
+            items: itemName,
+        });
 
 
         //create payment
-        const payment = await prisma.payment.create({
+        await prisma.payment.create({
 
             data: {
-                Amount: parseFloat(Amount),
+                Amount: numericAmount,
                 paymentMethod: {
                     connect: {
                         MethodId: paymentMethod.MethodId
@@ -82,8 +94,11 @@ const createPayment = asyncHandler(async (req, res) => {
 
 
         });
-        const monthlyPayment = parseFloat(bookingExists.MonthlyPayment);
-        res.status(200).json({ message: 'Successfully Paid', session })
+        res.status(200).json({
+            message: "Payment initialized",
+            checkout_url: checkoutUrl,
+            session: { url: checkoutUrl },
+        });
 
     } catch (error) {
         console.error('Error initializing payment:', error);

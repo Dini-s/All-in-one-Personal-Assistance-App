@@ -9,7 +9,7 @@ const usePaymentFormValidation = () => {
         //object for temporary store errors
         const tempError = {};
 
-        if (paymentType === 'visa' || paymentType === 'master') {
+        if (paymentType === 'visa' || paymentType === 'mastercard') {
             if (!cardCredentials.cardHolderName || cardCredentials.cardHolderName === "") {
                 tempError.cardHolderName = "card Holder name required";
 

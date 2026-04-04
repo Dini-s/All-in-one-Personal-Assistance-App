@@ -1,5 +1,4 @@
 // controllers/paymentController.js
-import axios from 'axios';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -8,22 +7,32 @@ dotenv.config();
 const PAYHERE_CHECKOUT_URL = 'https://sandbox.payhere.lk/pay/checkout';
 
 const initPayment = async (req, res) => {
-    const { amount, currency, order_id, items } = req.body;
+    const { amount, order_id, items } = req.body;
+
+    const numericAmount = Number(amount);
+    if (!order_id || !items || !Number.isFinite(numericAmount) || numericAmount <= 0) {
+        return res.status(400).json({ error: 'Invalid payment payload' });
+    }
+
+    if (!process.env.PAYHERE_MERCHANT_ID || !process.env.PAYHERE_RETURN_URL || !process.env.PAYHERE_CANCEL_URL || !process.env.PAYHERE_NOTIFY_URL) {
+        return res.status(500).json({ error: 'PayHere is not configured' });
+    }
 
     const paymentData = {
-        merchant_id: process.env.PAYHERE_MERCHANT_ID, // Replace with your PayHere Merchant ID
-        return_url: 'http://your-frontend-url.com/payment-success', // Redirect after payment
-        cancel_url: 'http://your-frontend-url.com/payment-cancel', // Redirect if payment is canceled
-        notify_url: 'http://localhost:8070/api/payment-notify', // Webhook for payment notifications
+        merchant_id: process.env.PAYHERE_MERCHANT_ID,
+        return_url: process.env.PAYHERE_RETURN_URL,
+        cancel_url: process.env.PAYHERE_CANCEL_URL,
+        notify_url: process.env.PAYHERE_NOTIFY_URL,
         order_id: order_id,
         items: items,
-        amount: amount,
+        currency: 'LKR',
+        amount: numericAmount.toFixed(2),
 
     };
 
     try {
-        // Redirect user to PayHere checkout page
-        res.json({ checkout_url: `${PAYHERE_CHECKOUT_URL}?${new URLSearchParams(paymentData).toString()}` });
+        const checkoutUrl = `${PAYHERE_CHECKOUT_URL}?${new URLSearchParams(paymentData).toString()}`;
+        res.json({ checkout_url: checkoutUrl, session: { url: checkoutUrl } });
     } catch (error) {
         res.status(500).json({ error: 'Payment initialization failed' });
     }

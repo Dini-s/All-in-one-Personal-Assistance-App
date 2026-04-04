@@ -1,19 +1,19 @@
 import cron from 'node-cron'
 import { prisma } from '../config/prismaConfig.js'
-import { sendUserToMail } from './mailService.js';
 
 
 export function schedulePaymentComplete() {
 
     cron.schedule('0 * * * *', async () => {
         try {
-            const twentyFourOurgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            const timeoutHours = Number(process.env.PAYMENT_PENDING_TIMEOUT_HOURS || 24);
+            const stalePendingCutoff = new Date(Date.now() - timeoutHours * 60 * 60 * 1000);
 
             const completionPayment = await prisma.payment.findMany({
                 where: {
                     Status: "PENDING",
                     PaymentDate: {
-                        lte: twentyFourOurgo
+                        lte: stalePendingCutoff
                     }
                 },
                 include: {
@@ -34,28 +34,19 @@ export function schedulePaymentComplete() {
                         paymentID: payment.paymentID
                     },
                     data: {
-                        Status: "COMPLETED"
+                        Status: "CANCELLED"
                     }
                 });
-
-                if (payment.customer && payment.booking.customer.Email) {
-                    await sendUserToMail(
-                        payment.booking.customer.Email,
-                        {
-                            id: payment.paymentID,
-                            amount: payment.Amount,
-                            date: payment.PaymentDate
-                        }
-                    );
-                }
 
             }
 
 
 
-            console.log('Update payment for completed payment');
+            if (completionPayment.length > 0) {
+                console.log(`Marked ${completionPayment.length} stale pending payments as CANCELLED`);
+            }
         } catch (error) {
-            console.error('Error in payment Completion')
+            console.error('Error in payment scheduler:', error)
         }
     });
 

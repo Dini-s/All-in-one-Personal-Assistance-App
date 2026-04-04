@@ -1,6 +1,14 @@
 import asyncHandler from "express-async-handler"
 import { prisma } from "../config/prismaConfig.js"
 
+const maskCardNumber = (cardNumber = "") => {
+    const digits = String(cardNumber).replace(/\D/g, "");
+    if (digits.length < 4) {
+        return "****";
+    }
+    return `**** **** **** ${digits.slice(-4)}`;
+}
+
 
 //add new saved payment method
 const savedPaymentMethod = asyncHandler(async (req, res) => {
@@ -13,7 +21,7 @@ const savedPaymentMethod = asyncHandler(async (req, res) => {
         const save = await prisma.savedPaymentMethod.create({
             data: {
                 paymentMethod: paymentMethod,
-                cardNumber: cardNumber,
+                cardNumber: maskCardNumber(cardNumber),
                 cardHolderName: cardHolderName,
             }
 
