@@ -52,6 +52,7 @@ import Settings from "./Component/Pages/Admindashboard/Settings";
 import AdminBookings from "./Component/Pages/Admindashboard/AdminBookings";
 import Services from "./Component/Pages/Admindashboard/ServicePage";
 import AdminReviews from "./Component/Pages/Admindashboard/AdminReviews"; // Added import
+import PaymentReview from "./Component/Pages/Admindashboard/PaymentReview";
 
 
 function AuthRedirector() {
@@ -155,6 +156,7 @@ function App() {
             <Route path="user" element={<Users />} />
             <Route path="servicePage" element={<Services />} />
             <Route path="transaction" element={<Transactions />} />
+            <Route path="payment-review" element={<PaymentReview />} />
             <Route path="provider" element={<ProviderPage />} />
             <Route path="profitLoss" element={<ProfitLoss />} />
             <Route path="salary" element={<SalaryCalculation />} />

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { getPaymentHistory, rejectPayment, requestRefund, verifyPayment } from "../../Lib/api";
+import { getPaymentHistory, requestRefund } from "../../Lib/api";
 
 const PaymentHistory = () => {
-  const isAdminView = Boolean(localStorage.getItem("adminToken"));
   const [payments, setPayments] = useState([]);
   const [reasonByPayment, setReasonByPayment] = useState({});
   const [error, setError] = useState("");
@@ -44,21 +43,6 @@ const PaymentHistory = () => {
       await loadPayments();
     } catch (apiError) {
       setError(apiError?.response?.data?.message || "Refund request failed");
-    }
-  };
-
-  const updateStatus = async (paymentId, action) => {
-    setError("");
-
-    try {
-      if (action === "verify") {
-        await verifyPayment(paymentId);
-      } else {
-        await rejectPayment(paymentId);
-      }
-      await loadPayments();
-    } catch (apiError) {
-      setError(apiError?.response?.data?.message || "Failed to update payment status");
     }
   };
 
@@ -110,25 +94,6 @@ const PaymentHistory = () => {
                     >
                       Request Refund
                     </button>
-
-                    {isAdminView && payment.status === "PENDING" ? (
-                      <div className="mt-2 flex gap-2">
-                        <button
-                          type="button"
-                          className="rounded bg-emerald-600 px-3 py-1 text-white"
-                          onClick={() => updateStatus(payment.paymentID, "verify")}
-                        >
-                          Mark Verified
-                        </button>
-                        <button
-                          type="button"
-                          className="rounded bg-rose-600 px-3 py-1 text-white"
-                          onClick={() => updateStatus(payment.paymentID, "reject")}
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    ) : null}
                   </td>
                 </tr>
               ))}

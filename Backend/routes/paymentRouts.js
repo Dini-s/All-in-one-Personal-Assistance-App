@@ -4,6 +4,7 @@ import {
     cancelPayment,
     createOfflinePayment,
     getPaymentById,
+    listAllPayments,
     listAllRefunds,
     listPaymentHistory,
     listRefundHistory,
@@ -17,6 +18,7 @@ const router = express.Router();
 
 router.post("/make-payment", createOfflinePayment);
 router.get("/history", listPaymentHistory);
+router.get("/admin/payments", listAllPayments);
 router.get("/refund-history", listRefundHistory);
 router.post("/refund-request", requestRefund);
 router.get("/admin/refunds", listAllRefunds);

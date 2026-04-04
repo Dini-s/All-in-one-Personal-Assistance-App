@@ -47,6 +47,12 @@ const SIDEBAR_ITEMS = [
     href: "/admin/transaction",
   },
   {
+    name: "Payment Review",
+    icon: Wallet,
+    color: "#22C55E",
+    href: "/admin/payment-review",
+  },
+  {
     name: "Provider",
     icon: ChefHat,
     color: "#F59E0B",

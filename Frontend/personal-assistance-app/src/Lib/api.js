@@ -74,6 +74,9 @@ export const rejectPayment = (paymentId) =>
 export const getAdminRefunds = () =>
   api.get("/api/payment/admin/refunds");
 
+export const getAdminPayments = () =>
+  api.get("/api/payment/admin/payments");
+
 export const approveAdminRefund = (refundId) =>
   api.patch(`/api/payment/admin/refunds/${refundId}/approve`);
 
