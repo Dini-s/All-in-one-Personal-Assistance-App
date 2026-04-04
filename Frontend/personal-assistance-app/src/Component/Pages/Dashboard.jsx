@@ -226,6 +226,37 @@ const ServiceCard = ({ name, image, onClick }) => (
   </motion.div>
 );
 
+const toUserCacheSnapshot = (user = {}) => ({
+  _id: user._id,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  email: user.email,
+  profile_pic: user.profile_pic || null,
+  isServiceProvider: Boolean(user.isServiceProvider),
+});
+
+const cacheUserDataSafely = (user = {}) => {
+  try {
+    localStorage.setItem("userData", JSON.stringify(toUserCacheSnapshot(user)));
+  } catch (error) {
+    if (error?.name === "QuotaExceededError") {
+      try {
+        localStorage.removeItem("userData");
+        localStorage.setItem("userData", JSON.stringify({
+          _id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          isServiceProvider: Boolean(user.isServiceProvider),
+        }));
+      } catch (_) {
+        console.warn("Skipping userData cache due to storage quota limits");
+      }
+      return;
+    }
+    console.warn("Failed to cache userData:", error);
+  }
+};
+
 const HomePage = () => {
   const [userData, setUserData] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -259,7 +290,7 @@ const HomePage = () => {
         });
 
         setUserData(response.data);
-        localStorage.setItem("userData", JSON.stringify(response.data));
+        cacheUserDataSafely(response.data);
         
         setStats({
           bookings: counts.data.myBookings || 0,

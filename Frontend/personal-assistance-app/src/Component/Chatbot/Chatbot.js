@@ -64,7 +64,9 @@ const ChatMessages = styled(List)(({ theme }) => ({
   maxHeight: 300
 }));
 
-const MessageBubble = styled(Box)(({ theme, isUser }) => ({
+const MessageBubble = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'isUser',
+})(({ theme, isUser }) => ({
   backgroundColor: isUser ? theme.palette.primary.light : theme.palette.grey[100],
   color: isUser ? theme.palette.primary.contrastText : theme.palette.text.primary,
   borderRadius: 16,
@@ -129,14 +131,23 @@ const ChatInputForm = styled('form')(({ theme }) => ({
   padding: theme.spacing(1, 2),
 }));
 
-const playNotificationTone = () => {
+const playNotificationTone = (canPlayAudio = false) => {
   try {
+    if (!canPlayAudio) {
+      return;
+    }
+
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextClass) {
       return;
     }
 
     const audioContext = new AudioContextClass();
+
+    if (audioContext.state === 'suspended') {
+      audioContext.resume().catch(() => {});
+    }
+
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
 
@@ -173,6 +184,21 @@ const Chatbot = () => {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const chatContainerRef = useRef(null);
+  const hasUserInteractedRef = useRef(false);
+
+  useEffect(() => {
+    const enableAudio = () => {
+      hasUserInteractedRef.current = true;
+    };
+
+    window.addEventListener('pointerdown', enableAudio, { once: true });
+    window.addEventListener('keydown', enableAudio, { once: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', enableAudio);
+      window.removeEventListener('keydown', enableAudio);
+    };
+  }, []);
   
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -199,7 +225,7 @@ const Chatbot = () => {
       );
       if (newBotMessages.length > 0) {
         setUnreadCount(count => count + newBotMessages.length);
-        playNotificationTone();
+        playNotificationTone(hasUserInteractedRef.current);
       }
     }
   }, [messages, isOpen, isMinimized]);
