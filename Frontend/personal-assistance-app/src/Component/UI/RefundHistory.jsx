@@ -1,154 +1,68 @@
-import React, { useState, useEffect } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap/dist/js/bootstrap.bundle.min.js";
-import "@fortawesome/fontawesome-free/css/all.min.css";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { getRefundHistory } from "../../Lib/api";
 
-const RefundHistory =() => {
+const RefundHistory = () => {
   const [refunds, setRefunds] = useState([]);
-  //state manage for date filter
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [filteredRefund, setFilteredRefund] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const getRefund = () => {
-      axios
-        .get("http://localhost:8070/home/Refund/retrieveRefund")
-        .then((res) => {
-          console.log(res);
-          setRefunds(res.data.refund);
-          setFilteredRefund(res.data.refund);
-        })
-        .catch((error) => {
-          alert(error.message);
-        });
-    };
-    getRefund();
-  }, []);
-  //handling Function
-  const handleDates = () => {
-    if (!startDate && !endDate) {
-      setFilteredRefund(refunds);
-      return;
-    }
-    const refundFiller = refunds.filter((refund) => {
-      const paymentDate = new Date(refund.requestAt);
-      const start = startDate ? new Date(startDate) : null;
-      const end = endDate ? new Date(endDate) : null;
-      //if user not select start date
-      if (startDate && endDate) {
-        return paymentDate >= start && paymentDate <= end;
-      }
-      if (!startDate) {
-        return paymentDate >= start;
-      }
-      if (!endDate) {
-        return paymentDate <= end;
-      }
-      return true;
-    });
-    setFilteredRefund(refundFiller);
-  };
+    const loadRefunds = async () => {
+      setLoading(true);
+      setError("");
 
-  const handleRequest = () => {};
+      try {
+        const response = await getRefundHistory();
+        setRefunds(response?.data?.refunds || []);
+      } catch (apiError) {
+        setError(apiError?.response?.data?.message || "Failed to load refund history");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRefunds();
+  }, []);
 
   return (
-    <div className="container m-6 mx-auto p-4 mt-[0] text-center">
-      <h2 className="text-2xl font-bold mb-4 text-white">Refund History</h2>
+    <div>
+      <h2 className="text-xl font-semibold text-slate-900">Refund History</h2>
+      <p className="mt-2 text-slate-600">View all your refund requests and current statuses.</p>
 
-      <div
-        className="flex gap-4 mb-6 items-end justify-center justify-items-center
-"
-      >
-        <div>
-          <label
-            htmlFor="startDate"
-            className="block text-sm font-medium text-white"
-          >
-            Start Date
-          </label>
-          <input
-            type="date"
-            id="startDate"
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="endDate"
-            className="block text-sm font-medium text-white"
-          >
-            End Date
-          </label>
-          <input
-            type="date"
-            id="endDate"
-            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </div>
-        <div>
-          <button
-            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-            onClick={handleDates}
-          >
-            Search
-          </button>
-        </div>
-      </div>
-      <div className="overflow-auto" style={{ maxHeight: "500px" }}>
-        <table className="table  table-hover table-striped-row backdrop-opacity-10">
-          <thead className="sticky top-0 ">
-            <tr>
-              <th scope="col" className="text-indigo">
-                #
-              </th>
-              <th scope="col">Refund Details</th>
-              <th scope="col">Refund Reason</th>
-              <th scope="col">Refund Status</th>
-            </tr>
-          </thead>
-          <tbody className="table-group-divider">
-            {filteredRefund.length > 0 ? (
-              filteredRefund.map((pay, index) => (
-                <tr key={pay.refundId}>
-                  <th scope="row" className="text-left px-4 py-2">
-                    {index + 1}
-                  </th>
-                  <td className="text-left px-4 py-2 min-w-[250px]">
-                    <p className="whitespace-nowrap">
-                      Refund ID: {pay.refundId}
-                    </p>
-                    <p className="whitespace-nowrap">
-                      Refund Date:
-                      {new Date(pay.requestAt).toLocaleDateString()}
-                    </p>
-                    <p className="whitespace-nowrap">
-                      <p>Refund Amount: {pay.amount}</p>
-                    </p>
-                  </td>
-                  <td className="text-left px-4 py-2 min-w-[250px] whitespace-nowrap">
-                    {pay.reason}
-                  </td>
-                  <td className="text-center px-4 py-2 min-w-[250px] whitespace-nowrap">
-                    {pay.status}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="4" className="text-center text-muted">
-                  No payments found.
-                </td>
+      {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+
+      {loading ? (
+        <p className="mt-5 text-slate-600">Loading refunds...</p>
+      ) : refunds.length === 0 ? (
+        <p className="mt-5 text-slate-600">No refund requests found.</p>
+      ) : (
+        <div className="mt-5 overflow-x-auto">
+          <table className="min-w-full border-collapse border text-sm">
+            <thead>
+              <tr className="bg-slate-100 text-left">
+                <th className="border px-3 py-2">Refund ID</th>
+                <th className="border px-3 py-2">Payment ID</th>
+                <th className="border px-3 py-2">Amount</th>
+                <th className="border px-3 py-2">Status</th>
+                <th className="border px-3 py-2">Reason</th>
+                <th className="border px-3 py-2">Requested At</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {refunds.map((refund) => (
+                <tr key={refund.refundId}>
+                  <td className="border px-3 py-2">{refund.refundId}</td>
+                  <td className="border px-3 py-2">{refund.paymentId}</td>
+                  <td className="border px-3 py-2">{refund.amount}</td>
+                  <td className="border px-3 py-2">{refund.status}</td>
+                  <td className="border px-3 py-2">{refund.reason}</td>
+                  <td className="border px-3 py-2">{new Date(refund.requestAt).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

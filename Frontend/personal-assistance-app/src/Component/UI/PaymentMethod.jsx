@@ -1,66 +1,36 @@
-import React, { useState } from "react";
-import PaymentForm from "./PaymentForm";
-import { useLocation } from "react-router-dom";
+import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
-const PaymentMethod =() => {
-  const [selectedType, setSelectedType] = useState(null);
+const PaymentMethod = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { bookingid, amount } = location.state || {};
 
-  const paymentmethods = [
-    { id: "payhere", label: "PayHere" },
-  ];
-
-  // Handle payment type selection
-  const handleSelectedPayment = (method, cardDetails = null) => {
-    setSelectedType(method);
-  };
-
-  // Reset selection to show payment options again
-  const handleBack = () => {
-    setSelectedType(null);
+  const startOfflinePayment = () => {
+    navigate("/payment/MakePayment", {
+      state: {
+        bookingid: bookingid || "",
+        amount: amount || "",
+        method: "OFFLINE_TRANSFER",
+      },
+    });
   };
 
   return (
-    <div className="min-h-screen w-screen flex ">
-      <div className="pl-8">
-        <div className="w-10/12 bg-stone-50 rounded-xl  shadow-[0px_4px_10px_rgba(1,1,1,0.5)] overflow-hidden pl-8 pr-8 pb-8 pt-8">
-          {/* Show Payment Form when a method is selected */}
-          {selectedType ? (
-            <div className="flex flex-col w-full space-x-3 items-center">
-              <button
-                onClick={handleBack}
-                className="mb-4 px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
-              >
-                ←
-              </button>
-              <PaymentForm
-                selectedType={selectedType}
-                saveDetails={null}
-                bookingid={bookingid}
-                amount={amount}
-              />
-            </div>
-          ) : (
-            /* Show Payment Selection */
-            <div className="w-full items-center">
-              <h2 className="text-lg text-[#000080] font-semibold mb-4 whitespace-nowrap pr-10">
-                Choose Payment Type:
-              </h2>
-              <div className="flex flex-col space-y-4">
-                {paymentmethods.map((method) => (
-                  <button
-                    key={method.id}
-                    onClick={() => handleSelectedPayment(method.id)}
-                    className="px-4 py-2 rounded-lg w-full text-center text-[#000080] bg-gray-200 hover:bg-blue-600 hover:text-white"
-                  >
-                    {method.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+    <div>
+      <h2 className="text-xl font-semibold text-slate-900">Payment Option</h2>
+      <p className="mt-2 text-slate-600">For now, payments are handled via manual offline transfer.</p>
+
+      <div className="mt-5 rounded-lg border p-4">
+        <p className="font-medium text-slate-900">Offline Transfer</p>
+        <p className="mt-1 text-sm text-slate-600">Submit your transfer reference and payer details.</p>
+        <button
+          type="button"
+          className="mt-4 rounded-md bg-slate-900 px-4 py-2 text-sm text-white hover:bg-slate-700"
+          onClick={startOfflinePayment}
+        >
+          Continue
+        </button>
       </div>
     </div>
   );

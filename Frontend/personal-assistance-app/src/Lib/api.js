@@ -11,7 +11,10 @@ const api = axios.create({
 // Add a request interceptor to include authentication token if needed
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("authToken") || localStorage.getItem("token");
+    const token =
+      localStorage.getItem("authToken") ||
+      localStorage.getItem("adminToken") ||
+      localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -42,5 +45,39 @@ export const updateBooking = (bookingID, updatedData) =>
 // Delete a booking
 export const deleteBooking = (bookingID) =>
   api.delete(`/home/booking/${bookingID}`);
+
+// Payments (offline flow)
+export const createOfflinePayment = (payload) =>
+  api.post("/api/payment/make-payment", payload);
+
+export const getPaymentHistory = (params = {}) =>
+  api.get("/api/payment/history", { params });
+
+export const requestRefund = (payload) =>
+  api.post("/api/payment/refund-request", payload);
+
+export const getRefundHistory = () =>
+  api.get("/api/payment/refund-history");
+
+export const getPaymentById = (paymentId) =>
+  api.get(`/api/payment/${paymentId}`);
+
+export const cancelPayment = (paymentId) =>
+  api.patch(`/api/payment/${paymentId}/cancel`);
+
+export const verifyPayment = (paymentId) =>
+  api.patch(`/api/payment/${paymentId}/verify`);
+
+export const rejectPayment = (paymentId) =>
+  api.patch(`/api/payment/${paymentId}/reject`);
+
+export const getAdminRefunds = () =>
+  api.get("/api/payment/admin/refunds");
+
+export const approveAdminRefund = (refundId) =>
+  api.patch(`/api/payment/admin/refunds/${refundId}/approve`);
+
+export const rejectAdminRefund = (refundId) =>
+  api.patch(`/api/payment/admin/refunds/${refundId}/reject`);
 
 export default api;

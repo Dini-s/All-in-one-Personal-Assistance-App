@@ -1,24 +1,13 @@
 import React from "react";
 import Header from "../../UI/AdminDashboard/Common/Header";
 import SalaryApprovalList from "../../UI/AdminDashboard/SalaryHandle/SalaryApprovalList";
-import axios from "axios";
 import DeductionList from "../../UI/AdminDashboard/SalaryHandle/DeductionList";
 import { Button } from "bootstrap/dist/js/bootstrap.bundle.min";
 import TopEarners from "../../UI/AdminDashboard/SalaryHandle/TopEarners";
 import { LampDemo } from "../../UI/AdminDashboard/SalaryHandle/lamp";
 export default function SalaryCalculation() {
-  const handleSalary = async () => {
-    try {
-      const res = await axios.post(
-        "http://localhost:8070/home/payment/AdminDashBoard/providerSalary",
-      );
-      console.log(res.data);
-      alert("Provider salaries calculated successfully!");
-      // You can also refresh data here if needed
-    } catch (error) {
-      console.error("Error processing salary:", error);
-      alert("Something went wrong while processing salaries.");
-    }
+  const handleSalary = () => {
+    alert("Salary processing endpoint was removed during payment redesign. Reconnect payroll module to new APIs.");
   };
 
   return (

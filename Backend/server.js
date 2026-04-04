@@ -7,10 +7,7 @@ import dotenv from "dotenv";
 
 // --- Import Your Routes ---
 import { paymentRoute } from "./routes/paymentRouts.js";
-import { RefundRouter } from "./routes/RefundRoutes.js";
-import { savedPaymentRouter } from "./routes/savedPaymentRoute.js";
 import { financialActivityRoute } from "./routes/financialActivity.js";
-import { PaymentGatewayRoute } from "./routes/PaymentGatewayRoute.js";
 import { bookingRouter } from "./routes/bookingRoutes.js";
 import ServiceProviderRouter from './routes/serviceProviderRoute.js';
 import authRoutes from './routes/authRoutes.js';
@@ -22,7 +19,6 @@ import reviewRoutes from './routes/reviewRoutes.js';
 
 // --- Import Your Middleware & Services ---
 import validateToken from "./middlwares/validateTokenHandler.js";
-import { schedulePaymentComplete } from "./services/paymentschedule.js";
 
 const app = express();
 dotenv.config();
@@ -63,10 +59,7 @@ mongoose.connection.once("open", () => {
 app.use('/api/auth', authRoutes);
 app.use('/api/user', validateToken, userRoutes);
 app.use('/api/service-provider', validateToken, spRoutes);
-app.use("/home/payment", paymentRoute); // Consider moving these under /api too for consistency
-app.use("/home/Refund", RefundRouter);
-app.use("/api", PaymentGatewayRoute);
-app.use("/home/payment/savedPayment", savedPaymentRouter);
+app.use("/api/payment", validateToken, paymentRoute);
 app.use("/adminDashBoard/Financial", financialActivityRoute);
 app.use("/home/booking", bookingRouter);
 app.use("/home/serviceProvider", ServiceProviderRouter);
@@ -78,8 +71,6 @@ app.use('/api/admin', validateToken, reviewRoutes);
 app.listen(PORT, () => {
     console.log(`Server start and running on port ${PORT}`);
 });
-
-schedulePaymentComplete(); // Run your scheduled task
 
 // --- Basic Root Route ---
 app.get('/', (req, res) => {

@@ -6,7 +6,7 @@ import StatCard from "../../UI/AdminDashboard/Common/StatCard";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-import axios from "axios";
+import { approveAdminRefund, getAdminRefunds, rejectAdminRefund } from "../../../Lib/api";
 
 export default function RefundPage() {
   const [refunnds, setRefund] = useState([]);
@@ -24,11 +24,9 @@ export default function RefundPage() {
 
   const refundDetail = async () => {
     try {
-      const detail = await axios.get(
-        "http://localhost:8070/home/Refund/retrieveRefund",
-      );
-      setRefund(detail.data.refund);
-      calculateStats(detail.data.refund);
+      const detail = await getAdminRefunds();
+      setRefund(detail.data.refunds);
+      calculateStats(detail.data.refunds);
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching refunds:", error);
@@ -52,20 +50,29 @@ export default function RefundPage() {
       total,
       requested,
       approved,
-      cancel,
+      cancelled: cancel,
     });
   };
 
   const handleApprove = async (refundId) => {
     try {
-      await axios.put("http://localhost:8070/home/Refund/Approval", {
-        refundID: refundId,
-      });
+      await approveAdminRefund(refundId);
       refundDetail();
       alert("Refund Approved Successfully!");
     } catch (error) {
       console.error("Error approving refund:", error);
       alert("Failed to approve refund");
+    }
+  };
+
+  const handleReject = async (refundId) => {
+    try {
+      await rejectAdminRefund(refundId);
+      refundDetail();
+      alert("Refund Rejected Successfully!");
+    } catch (error) {
+      console.error("Error rejecting refund:", error);
+      alert("Failed to reject refund");
     }
   };
   return (
@@ -146,12 +153,20 @@ export default function RefundPage() {
                         </td>
                         <td className="text-center px-2 py-2 min-w-[20px]">
                           {pay.status === "PENDING" && (
-                            <button
-                              onClick={() => handleApprove(pay.refundId)}
-                              className="btn btn-sm btn-success"
-                            >
-                              Approve
-                            </button>
+                            <div className="d-flex gap-2 justify-content-center">
+                              <button
+                                onClick={() => handleApprove(pay.refundId)}
+                                className="btn btn-sm btn-success"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleReject(pay.refundId)}
+                                className="btn btn-sm btn-danger"
+                              >
+                                Reject
+                              </button>
+                            </div>
                           )}
                         </td>
                       </tr>
