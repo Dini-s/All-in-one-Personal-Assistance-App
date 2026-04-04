@@ -174,20 +174,22 @@ function SignupForm() {
         setErrorMsg((res.data && res.data.message) || "Signup failed");
       }
     } catch (err) {
-      console.error(err);
-
       if (err.response) {
-        if (err.response.status === 409) {
+        const responseMessage = err.response.data && err.response.data.message ? err.response.data.message : "";
+
+        if (err.response.status === 409 || /already registered/i.test(responseMessage)) {
           setEmailError("This email is already registered");
           setErrorMsg("This email address is already registered. Please use a different email or login.");
-        } else if (err.response.data && err.response.data.message) {
-          setErrorMsg(err.response.data.message);
+        } else if (responseMessage) {
+          setErrorMsg(responseMessage);
         } else {
           setErrorMsg("Registration failed. Please check your information and try again.");
         }
       } else if (err.request) {
+        console.error(err);
         setErrorMsg("Network error. Please check your connection and try again.");
       } else {
+        console.error(err);
         setErrorMsg("Something went wrong. Please try again.");
       }
     } finally {

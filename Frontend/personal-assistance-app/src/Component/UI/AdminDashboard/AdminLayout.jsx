@@ -1,5 +1,4 @@
-import { Link, Outlet } from "react-router-dom";
-import SideNavBar from "../SideNavBar";
+import { Outlet } from "react-router-dom";
 import SideBar from "./Common/SideBar";
 
 const AdminLayout = () => {
@@ -12,8 +11,9 @@ const AdminLayout = () => {
       </div>
       <SideBar />
       {/* Main Content */}
-
-      <Outlet />
+      <main className="relative z-10 flex-1 overflow-auto">
+        <Outlet />
+      </main>
     </div>
   );
 };

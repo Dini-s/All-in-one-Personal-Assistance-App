@@ -93,10 +93,10 @@ router.post(
 
     try {
       const secret = speakeasy.generateSecret();
-      const db_user = await UserModel.findOne({ email });
+      const db_user = await AdminModel.findOne({ email });
 
       if (db_user) {
-        return res.status(400).send({ message: 'User already Registered!' });
+        return res.status(400).send({ message: 'Admin already Registered!' });
       }
 
       const hashPassword = await bcrypt.hash(password, 8);

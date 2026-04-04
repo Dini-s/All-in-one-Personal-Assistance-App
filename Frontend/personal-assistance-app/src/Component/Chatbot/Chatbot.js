@@ -129,6 +129,34 @@ const ChatInputForm = styled('form')(({ theme }) => ({
   padding: theme.spacing(1, 2),
 }));
 
+const playNotificationTone = () => {
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) {
+      return;
+    }
+
+    const audioContext = new AudioContextClass();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.type = 'sine';
+    oscillator.frequency.value = 880;
+    gainNode.gain.value = 0.04;
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.15);
+
+    oscillator.onended = () => {
+      audioContext.close().catch(() => {});
+    };
+  } catch (error) {
+    console.log('Notification tone unavailable:', error);
+  }
+};
+
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
@@ -171,10 +199,7 @@ const Chatbot = () => {
       );
       if (newBotMessages.length > 0) {
         setUnreadCount(count => count + newBotMessages.length);
-        // Play notification sound
-        const notificationSound = new Audio('/notification-sound.mp3');
-        notificationSound.volume = 0.5;
-        notificationSound.play().catch(e => console.log('Audio play prevented:', e));
+        playNotificationTone();
       }
     }
   }, [messages, isOpen, isMinimized]);
@@ -308,7 +333,7 @@ const Chatbot = () => {
           <ChatHeader>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Box sx={{ position: 'relative', mr: 1.5 }}>
-                <Avatar alt="SeraniLux Logo" src="/seranilux-logo.png" sx={{ width: 40, height: 40 }} />
+                <Avatar alt="SeraniLux Logo" src="/logo192.png" sx={{ width: 40, height: 40 }} />
                 <StatusIndicator />
               </Box>
               <Box>

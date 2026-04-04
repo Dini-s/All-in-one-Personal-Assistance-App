@@ -403,39 +403,33 @@ const ProviderPage = () => {
   return (
     <Box sx={{ 
       minHeight: '100vh',
-      background: 'linear-gradient(to bottom right, #1a1a1a, #000000)',
+      background: 'linear-gradient(135deg, #1a237e 0%, #121212 100%)',
       color: 'white',
-      p: 4
+      p: { xs: 2, md: 4 }
     }}>
-      <Box sx={{ maxWidth: '7xl', mx: 'auto', px: 4, py: 8 }}>
-      <Typography
-  variant="h4"
-  gutterBottom
-  sx={{
-    fontWeight: 'bold',
-    color: 'white',
-    mb: 4,
-    textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: '8px 16px',
-    borderRadius: '8px',
-    display: 'inline-block',
-    position: 'relative',
-    zIndex: 10,
-    ml: '4%',
-    fontSize: '1.5rem', // Adjust size to match if needed
-    lineHeight: '2rem'
-  }}
->
-  Service Providers Management
-</Typography>
+      <Box sx={{ maxWidth: '1200px', mx: 'auto', px: { xs: 2, md: 4 }, py: { xs: 4, md: 6 } }}>
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
+            fontWeight: 'bold',
+            color: 'white',
+            mb: 4,
+            textShadow: '1px 1px 3px rgba(0, 0, 0, 0.5)',
+          }}
+        >
+          Service Providers Management
+        </Typography>
         <Paper sx={{ 
           p: 2, 
           mb: 3, 
           backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(10px)'
+          backdropFilter: 'blur(8px)',
+          borderRadius: 2,
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          width: '100%'
         }}>
-          <Grid container spacing={2} alignItems="center">
+          <Grid container spacing={2} alignItems="center" justifyContent="space-between">
           <Grid item xs={12} sm={6} md={3}>  {/* Increased from md={3} */}
     <TextField
       fullWidth
@@ -553,17 +547,45 @@ const ProviderPage = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6} md={1} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Grid item xs="auto" sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              ml: 'auto', 
+              justifyContent: 'flex-end',
+              flexShrink: 0
+            }}>
               <Tooltip title="Download PDF (based on current search)">
-                <IconButton onClick={generatePDF} sx={{ color: 'white', mr: 1 }}>
+                <IconButton onClick={generatePDF} sx={{ 
+                  color: 'white', 
+                  mr: 1,
+                  '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }
+                }}>
                   <Download />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Refresh">
-                <IconButton onClick={fetchServiceProviders} sx={{ color: 'white' }}>
+                <IconButton onClick={fetchServiceProviders} sx={{ 
+                  color: 'white',
+                  mr: 1,
+                  '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }
+                }}>
                   <Refresh />
                 </IconButton>
               </Tooltip>
+
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                py: 0.75,
+                px: 1.5,
+                borderRadius: 2,
+                backgroundColor: 'rgba(0, 91, 187, 0.3)',
+                border: '1px solid rgba(255, 255, 255, 0.15)'
+              }}>
+                <Typography variant="body2" sx={{ color: 'white', fontWeight: 'bold' }}>
+                  {filteredProviders.length}
+                </Typography>
+              </Box>
             </Grid>
           </Grid>
         </Paper>
@@ -578,20 +600,23 @@ const ProviderPage = () => {
           <>
             <TableContainer component={Paper} sx={{ 
               backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)'
+              backdropFilter: 'blur(8px)',
+              borderRadius: 2,
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              overflow: 'hidden'
             }}>
               <Table>
-                <TableHead sx={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}>
+                <TableHead sx={{ backgroundColor: 'rgba(0, 91, 187, 0.3)' }}>
                   <TableRow>
-                    <TableCell sx={{ color: 'white' }}>Profile</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Name</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Email</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Service Type</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Location</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Rate (Rs/hr)</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Languages</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Status</TableCell>
-                    <TableCell sx={{ color: 'white' }}>Actions</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Profile</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Name</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Email</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Service Type</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Location</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Rate (Rs/hr)</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Languages</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Status</TableCell>
+                    <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -602,7 +627,8 @@ const ProviderPage = () => {
                         sx={{ 
                           '&:hover': { 
                             backgroundColor: 'rgba(255, 255, 255, 0.05)' 
-                          } 
+                          },
+                          borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
                         }}
                       >
                         <TableCell>
@@ -665,7 +691,7 @@ const ProviderPage = () => {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={9} align="center" sx={{ color: 'white' }}>
+                      <TableCell colSpan={9} align="center" sx={{ color: 'white', py: 4 }}>
                         No service providers found
                       </TableCell>
                     </TableRow>
@@ -682,6 +708,9 @@ const ProviderPage = () => {
                 sx={{
                   '& .MuiPaginationItem-root': {
                     color: 'white'
+                  },
+                  '& .Mui-selected': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.2) !important'
                   }
                 }}
               />

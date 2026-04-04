@@ -95,7 +95,12 @@ const ProtectedLayout2 = () => (
 
 function App() {
   return (
-    <Router>
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <Routes>
         <Route path="/" element={<AuthRedirector />} />
         <Route path="/signin" element={<Login />} />

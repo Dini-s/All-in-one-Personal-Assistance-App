@@ -6,7 +6,7 @@ export default function AdminRoute({ isAuthenticated, isAdmin }) {
   console.log("AdminRoute -> isAdmin:", isAdmin);
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/admin-signin" replace />;
   }
 
   if (!isAdmin) {
